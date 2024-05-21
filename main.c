@@ -20,23 +20,25 @@ typedef struct wav {
     char data[4];
     int32_t dataSize;
 } wavHeader;
-static wavHeader *pVAW;
+static wavHeader *pWAV;
 
 int main()
 {
-    wavHeader VAW;
-    pVAW = &VAW;
+    wavHeader WAV;
+    pVAW = &WAV;
 
-    strncpy(VAW.RIFF, "RIFF", 4);
-    strncpy(VAW.WAVE, "WAVE", 4);
-    strncpy(VAW.fmt, "fmt", 4);
-    strncpy(VAW.data, "data", 4);
+    strncpy(WAV.RIFF, "RIFF", 4);
+    strncpy(WAV.WAVE, "WAVE", 4);
+    strncpy(WAV.fmt, "fmt", 4);
+    strncpy(WAV.data, "data", 4);
 
-    VAW.chunkSize = 16;
-    VAW.formatDataSize = 1;
-    VAW.channelNumber = 1;
-    VAW.
-
+    WAV.chunkSize = 16;
+    WAV.formatDataSize = 1;
+    WAV.channelNumber = 1;
+    WAV.sampleRate = 8000;
+    WAV.bitsPerSample = 16;
+    WAV.bytesPerSample = (WAV.bitsPerSample / 8) * WAV.channelNumber;
+    WAV.bytesPerSecond = WAV.sampleRate * WAV.bytesPerSample;
 
 
     printf("Hello world!\n");
