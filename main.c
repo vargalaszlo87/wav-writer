@@ -5,9 +5,13 @@
 #include <math.h>
 #include <string.h>
 
+#ifndef M_PI
+#define M_PI 3.1415926535
+#endif // M_PI
+
 typedef struct wav {
     char RIFF[4];
-    int32_t FileSize;
+    int32_t fileSize;
     char WAVE[4];
     char fmt[4];
     int32_t chunkSize;
@@ -24,8 +28,10 @@ static wavHeader *pWAV;
 
 int main()
 {
+    #define SAMPLE_RATE 8000
+
     wavHeader WAV;
-    pVAW = &WAV;
+    //pVAW = &WAV;
 
     strncpy(WAV.RIFF, "RIFF", 4);
     strncpy(WAV.WAVE, "WAVE", 4);
@@ -40,6 +46,22 @@ int main()
     WAV.bytesPerSample = (WAV.bitsPerSample / 8) * WAV.channelNumber;
     WAV.bytesPerSecond = WAV.sampleRate * WAV.bytesPerSample;
 
+    const int duration = 10;
+    const int bufferSize = WAV.sampleRate * duration;
+
+    WAV.dataSize = bufferSize * WAV.sampleRate;
+    WAV.fileSize = WAV.dataSize + sizeof(wavHeader);
+
+    short int *buffer = (int*)calloc(bufferSize, sizeof(int));
+
+    for (int i = 0; i < bufferSize ; i++) {
+        buffer[i] = (short int)(sin(( 2 * M_PI * 440 * i) / WAV.sampleRate) * 1000);
+    }
+
+    FILE *fp = fopen("teszt.wav", "w");
+    fwrite(&WAV, 1, sizeof(wavHeader), fp);
+//    fwrite(buffer, 2, bufferSize, fp);
+    fclose(fp);
 
     printf("Hello world!\n");
     return 0;

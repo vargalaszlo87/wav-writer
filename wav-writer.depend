@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1716816561 source:c:\users\gf4hig3\onedrive\eigene dateien\github\wav-writer\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdint.h>
+	<stddef.h>
+	<math.h>
+	<string.h>
+
