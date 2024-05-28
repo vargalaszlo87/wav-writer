@@ -10,57 +10,62 @@
 #endif // M_PI
 
 typedef struct wav {
-    char RIFF[4];
-    int32_t fileSize;
-    char WAVE[4];
-    char fmt[4];
+    // riff
+    char chunkID[4];
     int32_t chunkSize;
-    int16_t formatDataSize;
-    int16_t channelNumber;
+    char format[4];
+    // fmt
+    char subChunk1ID[4];
+    int32_t subchunk1Size;
+    int16_t audioFormat;
+    int16_t numChannels;
     int32_t sampleRate;
-    int16_t bytesPerSecond;
-    int32_t bytesPerSample;
+    int32_t byteRate;
+    int16_t blockAgain;
     int16_t bitsPerSample;
-    char data[4];
-    int32_t dataSize;
+    // data
+    char subchunk2ID[4];
+    int32_t subchunk2Size;
 } wavHeader;
 static wavHeader *pWAV;
 
 int main()
 {
-    #define SAMPLE_RATE 8000
+    #define DURATION 3
 
     wavHeader WAV;
     //pVAW = &WAV;
 
-    strncpy(WAV.RIFF, "RIFF", 4);
-    strncpy(WAV.WAVE, "WAVE", 4);
-    strncpy(WAV.fmt, "fmt", 4);
-    strncpy(WAV.data, "data", 4);
-
-    WAV.chunkSize = 16;
-    WAV.formatDataSize = 1;
-    WAV.channelNumber = 1;
-    WAV.sampleRate = 8000;
+    // riff
+    strncpy(WAV.chunkID, "RIFF", 4);
+    strncpy(WAV.format, "WAVE", 4);
+    // fmt
+    strncpy(WAV.subChunk1ID, "fmt ", 4);
+    WAV.subchunk1Size = 16;
+    WAV.audioFormat = 1;
+    WAV.numChannels = 1; // 1 -> mono
+    WAV.sampleRate = 32000;
+    WAV.blockAgain = WAV.numChannels * WAV.bitsPerSample / 8;
+    WAV.byteRate = WAV.sampleRate * WAV.blockAgain;
     WAV.bitsPerSample = 16;
-    WAV.bytesPerSample = (WAV.bitsPerSample / 8) * WAV.channelNumber;
-    WAV.bytesPerSecond = WAV.sampleRate * WAV.bytesPerSample;
+    // data
+    strncpy(WAV.subchunk2ID, "data", 4);
+    int bufferSize = WAV.sampleRate * DURATION;
+    WAV.subchunk2Size = bufferSize * WAV.numChannels * WAV.bitsPerSample / 8;
 
-    const int duration = 10;
-    const int bufferSize = WAV.sampleRate * duration;
+    // end of riff
+    WAV.chunkSize = 4 + (8 + WAV.subchunk1Size) + 8 + WAV.subchunk2Size;
 
-    WAV.dataSize = bufferSize * WAV.sampleRate;
-    WAV.fileSize = WAV.dataSize + sizeof(wavHeader);
 
-    short int *buffer = (int*)calloc(bufferSize, sizeof(int));
+    float *buffer = (float*)calloc(bufferSize, sizeof(float));
 
     for (int i = 0; i < bufferSize ; i++) {
-        buffer[i] = (short int)(sin(( 2 * M_PI * 440 * i) / WAV.sampleRate) * 1000);
+        buffer[i] = (cos(( 2 * M_PI * 5000 * i) / WAV.sampleRate) * 1000);
     }
 
     FILE *fp = fopen("teszt.wav", "w");
     fwrite(&WAV, 1, sizeof(wavHeader), fp);
-//    fwrite(buffer, 2, bufferSize, fp);
+    fwrite(buffer, 2, bufferSize, fp);
     fclose(fp);
 
     printf("Hello world!\n");
