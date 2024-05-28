@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <math.h>
 #include <string.h>
+#include <assert.h>
 
 #ifndef M_PI
 #define M_PI 3.1415926535
@@ -44,7 +45,7 @@ int main()
     WAV.subchunk1Size = 16;
     WAV.audioFormat = 1;
     WAV.numChannels = 1; // 1 -> mono
-    WAV.sampleRate = 32000;
+    WAV.sampleRate = 96000;
     WAV.blockAgain = WAV.numChannels * WAV.bitsPerSample / 8;
     WAV.byteRate = WAV.sampleRate * WAV.blockAgain;
     WAV.bitsPerSample = 16;
@@ -57,17 +58,42 @@ int main()
     WAV.chunkSize = 4 + (8 + WAV.subchunk1Size) + 8 + WAV.subchunk2Size;
 
 
-    float *buffer = (float*)calloc(bufferSize, sizeof(float));
 
-    for (int i = 0; i < bufferSize ; i++) {
-        buffer[i] = (cos(( 2 * M_PI * 5000 * i) / WAV.sampleRate) * 1000);
-    }
+
+
 
     FILE *fp = fopen("teszt.wav", "w");
-    fwrite(&WAV, 1, sizeof(wavHeader), fp);
+    fwrite(&WAV.chunkID, 1, 4, fp);
+    fwrite(&WAV.chunkSize,4, 1, fp);
+    fwrite(&WAV.format,1, 4, fp);
+    fwrite(&WAV.subChunk1ID, 1, 4, fp);
+    fwrite(&WAV.subchunk1Size, 4, 1, fp);
+    fwrite(&WAV.audioFormat, 2, 1, fp);
+    fwrite(&WAV.numChannels, 2, 1, fp);
+    fwrite(&WAV.sampleRate, 4, 1, fp);
+    fwrite(&WAV.blockAgain, 2, 1, fp);
+    fwrite(&WAV.byteRate, 4, 1, fp);
+    fwrite(&WAV.bitsPerSample, 2, 1, fp);
+    fwrite(&WAV.subchunk2ID, 4, 1, fp);
+    fwrite(&WAV.subchunk2Size, 4, 1, fp);
+
+
+    float *buffer = (float*)calloc(bufferSize, sizeof(float));
+    double f = 440.0 * 2 * M_PI / (double)WAV.sampleRate;
+
+
+    double phase = 0.0;
+    for (int i = 0; i < bufferSize ; i++) {
+        phase += f;
+        buffer[i] = 5000 * sin(phase);
+    }
+
     fwrite(buffer, 2, bufferSize, fp);
+
     fclose(fp);
 
     printf("Hello world!\n");
     return 0;
+
+
 }
