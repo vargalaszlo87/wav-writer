@@ -10,6 +10,8 @@
 #define M_PI 3.1415926535
 #endif // M_PI
 
+short int buff[8000 * 3] = {};
+
 typedef struct wav {
     // riff
     char chunkID[4];
@@ -45,54 +47,32 @@ int main()
     WAV.subchunk1Size = 16;
     WAV.audioFormat = 1;
     WAV.numChannels = 1; // 1 -> mono
-    WAV.sampleRate = 96000;
+    WAV.sampleRate = 8000;
+    WAV.bitsPerSample = 16;
     WAV.blockAgain = WAV.numChannels * WAV.bitsPerSample / 8;
     WAV.byteRate = WAV.sampleRate * WAV.blockAgain;
-    WAV.bitsPerSample = 16;
+
     // data
     strncpy(WAV.subchunk2ID, "data", 4);
     int bufferSize = WAV.sampleRate * DURATION;
-    WAV.subchunk2Size = bufferSize * WAV.numChannels * WAV.bitsPerSample / 8;
+    WAV.subchunk2Size = bufferSize * WAV.blockAgain;
 
     // end of riff
-    WAV.chunkSize = 4 + (8 + WAV.subchunk1Size) + 8 + WAV.subchunk2Size;
+    WAV.chunkSize = WAV.subchunk2Size + sizeof(wavHeader);
 
 
 
-
-
-
-    FILE *fp = fopen("teszt.wav", "w");
-    fwrite(&WAV.chunkID, 1, 4, fp);
-    fwrite(&WAV.chunkSize,4, 1, fp);
-    fwrite(&WAV.format,1, 4, fp);
-    fwrite(&WAV.subChunk1ID, 1, 4, fp);
-    fwrite(&WAV.subchunk1Size, 4, 1, fp);
-    fwrite(&WAV.audioFormat, 2, 1, fp);
-    fwrite(&WAV.numChannels, 2, 1, fp);
-    fwrite(&WAV.sampleRate, 4, 1, fp);
-    fwrite(&WAV.blockAgain, 2, 1, fp);
-    fwrite(&WAV.byteRate, 4, 1, fp);
-    fwrite(&WAV.bitsPerSample, 2, 1, fp);
-    fwrite(&WAV.subchunk2ID, 4, 1, fp);
-    fwrite(&WAV.subchunk2Size, 4, 1, fp);
-
-
-    float *buffer = (float*)calloc(bufferSize, sizeof(float));
-    double f = 440.0 * 2 * M_PI / (double)WAV.sampleRate;
-
-
-    double phase = 0.0;
+    short int *buffer = (short int*)calloc(bufferSize, sizeof(short int));
     for (int i = 0; i < bufferSize ; i++) {
-        phase += f;
-        buffer[i] = 5000 * sin(phase);
+        buffer[i] = (short int)((cos(2 * M_PI * (float)440.00 * i) / WAV.sampleRate) * 1000);
     }
 
+    FILE *fp = fopen("teszt.wav", "w");
+    fwrite(&WAV, 1, sizeof(wavHeader), fp);
     fwrite(buffer, 2, bufferSize, fp);
 
-    fclose(fp);
 
-    printf("Hello world!\n");
+    printf("Make it!\n");
     return 0;
 
 
